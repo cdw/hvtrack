@@ -5,7 +5,7 @@ Created by Dave Williams on 2013.11.07
 
 Video.py contains the class which handles the loading and access to video files
 for the tracker. It provides a uniform interface which abstracts away the
-details of which video file type you are dealing with. 
+details of which video file type you are dealing with.
 """
 
 try:
@@ -14,11 +14,12 @@ try:
 except ImportError, e:
     raise Exception("You'll need both OpenCV and TiffCapture installed. OpenCV can be gotten with 'brew install opencv' on a Mac or from opencv.org on Windows and TiffCapture can be gotten with 'pip install tiffcapture' on any platform.")
 
+
 class Video(object):
     """An access class for reading video frames"""
-    def __init__(self, filename = None):
+    def __init__(self, filename=None):
         """Prepare yourself"""
-        self._is_open = False #set true on opening
+        self._is_open = False  # Set true on opening
         self.open(filename)
     
     def __iter__(self):
@@ -26,7 +27,7 @@ class Video(object):
     
     def _to_grayscale(self, img):
         """It is a whole lot easier to deal with grayscale, so convert"""
-        if len(img.shape)>1:
+        if len(img.shape) > 1:
             img = img.mean(-1)
         return img
     
@@ -48,14 +49,14 @@ class Video(object):
                 self.length = self.video.length
                 self.shape = self.video.shape
                 self._curr = 0
-            else: 
+            else:
                 # For other formats try opencv
                 self.format = 'CV'
                 self.video = cv2.VideoCapture(filename)
                 self._is_open = True
                 self.length = self.video.get(cv2.cv.CV_CAP_PROP_FRAME_COUNT)
                 self.shape = (
-                    int(self.video.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)), 
+                    int(self.video.get(cv2.cv.CV_CAP_PROP_FRAME_WIDTH)),
                     int(self.video.get(cv2.cv.CV_CAP_PROP_FRAME_HEIGHT)))
                 self._curr = 0
         return self.isOpened()
@@ -124,12 +125,12 @@ def play_video(cvtiff, framerate=12, size=(800,600)):
 def write_video(imgstack, filename = '/Users/dave/Desktop/videoout.avi',
                size = (800, 600), tc=False):
     """Write out a video, starting from an array of numpy arrays"""
-    ## Must be 3 deep...
+    # Must be 3 deep...
     if tc is False and len(imgstack[0].shape) == 2:
         imgstack = [np.tile(i, (3,1,1)) for i in imgstack]
     fps = 12.0
     fourcc = cv2.cv.FOURCC('I', 'Y', 'U', 'V') 
-    #size = (imgstack[0].shape[1], imgstack[0].shape[0]) 
+    # size = (imgstack[0].shape[1], imgstack[0].shape[0]) 
     writer = cv2.VideoWriter(filename, fourcc, fps, size)
     if tc is True:
         imgstack.seek(0)
