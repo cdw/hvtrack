@@ -15,6 +15,10 @@ except ImportError, e:
     raise Exception("You'll need both OpenCV and TiffCapture installed. OpenCV can be gotten with 'brew install opencv' on a Mac or from opencv.org on Windows and TiffCapture can be gotten with 'pip install tiffcapture' on any platform.")
 
 
+def open_video_file(filename):
+    """Create and return an opened video file from the passed file name."""
+    return Video(filename)
+
 class Video(object):
     """An access class for reading video frames"""
     def __init__(self, filename=None):
@@ -30,6 +34,10 @@ class Video(object):
         if len(img.shape) > 1:
             img = img.mean(-1)
         return img
+    
+    def isOpened(self):
+        """Return true if opened."""
+        return self._is_open
     
     def open(self, filename):
         """Open the video file and attach it to the class.
