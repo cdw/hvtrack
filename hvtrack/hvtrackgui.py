@@ -9,6 +9,8 @@ Created by Dave Williams on 2014-04-21
 import Tkinter as tk
 import ttk
 import tkFileDialog
+import hummertracker
+import os
 
 class Interface(ttk.Frame):
     """Subclassed interface to the rest of the program
@@ -22,6 +24,7 @@ class Interface(ttk.Frame):
         self.directory = None
         
     def initUI(self):
+        """Put all the UI widgets where they go"""
         self.parent.title("Track video")
         self.style = ttk.Style()
         self.style.theme_use("default")
@@ -34,12 +37,18 @@ class Interface(ttk.Frame):
         openButton.pack(side=tk.RIGHT, padx=5, pady=5)
     
     def askOpen(self):
+        """Ask for a file, then run the tracker on it"""
         fname = tkFileDialog.askopenfilename()
+        trace = hummertracker.vid_to_trace(fname) #throwing PIL error, need to
+        #track down
+        hummertracker.save_trace(os.path.splitext(fname)[0] + '.pkl')
         print fname
     
     def askDir(self):
-        pass
-
+        """Ask for a directory, then run the tracker on it"""
+        dirname = tkFileDialog.askdirectory()
+        hummertracker.dir_to_traces(dirname)
+        print dirname
 
 def main():
     root = tk.Tk()
