@@ -11,6 +11,9 @@ import copy
 import numpy as np
 import cv2
 
+def create_background_object(video_object):
+    """Create a background subtraction object from a passed video object."""
+    return Background(video_object)
 
 class Background(object):
     """Remember the background model for a video file."""
@@ -44,7 +47,7 @@ class Background(object):
         Gives:
             background - the background image
         """
-        return self.first_ten
+        return self._first_ten
     
     def subtract_background(self, frame_ind):
         """Return a non-thresholded background-subtracted version of frame i.
