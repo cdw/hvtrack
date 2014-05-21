@@ -1,15 +1,14 @@
 #!/usr/bin/env python
 # encoding: utf-8
-""" Background.py
+""" background.py
 Created by Dave Williams on 2013.11.07
 
-Background.py provides access to background subtraction mechanisms and their
+background.py provides access to background subtraction mechanisms and their
 associated parameters. 
 """
 
 import copy
 import numpy as np
-import cv2
 
 def create_background_object(video_object):
     """Create a background subtraction object from a passed video object."""
