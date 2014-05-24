@@ -15,15 +15,37 @@ class Segment(object):
     The basic order:
         - perform a threshold on the background subtracted image
         - erode and dilate the image to remove smaller speckles
-        - filter the remaining contours by size and convexity
-        - provide an array of contoured objects
+        - provide a resulting final binary image
     """
-    def __init__(self, min_thresh=10, ):
-        """No passed arguments required."""
+    def __init__(self, min_thresh=10, thresh_area=101,
+                 open_kernel_x=10, open_kernel_y=10):
+        """Initialize the values we will use during segmentation.
+
+        Takes:
+            min_thresh - the minimum threshold value to count as foreground
+            thresh_area - the area to consider when adaptively thresholding
+            open_kernel_x - the x scale of object to select for in opening
+            open_kernel_y - the y scale of object to select for in opening
+        Gives:
+            None
+        """
         self.min_thresh = min_thresh
         self.thresh_area = thresh_area
-        self.open_kernel_x = open_kernal_x
-        self.open_kernel_y = open_kernal_y
+        self.open_kernel_x = open_kernel_x
+        self.open_kernel_y = open_kernel_y
+    
+    def set_min_thresh(self, min_thresh):
+        """Set the minimum threshold for non-adaptive thresholding."""
+        self.thresh_area = thresh_area
+
+    def set_thresh_area(self, thresh_area):
+        """Set the adaptive threshold area"""
+        self.thresh_area = thresh_area
+
+    def set_open_kernal(self, open_kernel_x, open_kernel_y):
+        """Set the morphological opening kernel x and y dimensions."""
+        self.open_kernel_x = open_kernel_x
+        self.open_kernel_y = open_kernel_y
 
     def abs_thresh(self, img, min_thresh=self.min_thresh, invert=False):
         """Perform an absolute threshold on the passed image.
