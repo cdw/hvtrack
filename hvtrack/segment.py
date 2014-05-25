@@ -10,6 +10,10 @@ tracks them over time.
 import numpy as np
 import cv2
 
+def create_segment_object()
+    """Create a segmentation object with default parameters."""
+    return Segment()
+
 class Segment(object):
     """Detect foreground objects, generate tracks of them over time.
     The basic order:
