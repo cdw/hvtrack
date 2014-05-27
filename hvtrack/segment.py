@@ -10,7 +10,7 @@ tracks them over time.
 import numpy as np
 import cv2
 
-def create_segment_object()
+def create_segment_object():
     """Create a segmentation object with default parameters."""
     return Segment()
 
@@ -51,7 +51,7 @@ class Segment(object):
         self.open_kernel_x = open_kernel_x
         self.open_kernel_y = open_kernel_y
 
-    def abs_thresh(self, img, min_thresh=self.min_thresh, invert=False):
+    def abs_thresh(self, img, min_thresh=None, invert=False):
         """Perform an absolute threshold on the passed image.
         
         More documentation on the absolute threshold and its arguments is
@@ -64,6 +64,8 @@ class Segment(object):
         Gives:
             img - the thresholded image
         """
+        if min_thresh is None:
+            min_thresh = self.min_thresh
         if invert:
             thresh_type = cv2.cv.CV_THRESH_BINARY_INV 
         else:
@@ -75,7 +77,7 @@ class Segment(object):
                 thresh_type)[1]        # inverted or not, return only the image
         return img
 
-    def thresh(self, img, area=self.thresh_area):
+    def thresh(self, img, area=None, invert=False):
         """Perform an adaptive threshold on the passed image.
         
         Documentation on the adaptive threshold and its arguments is located
@@ -83,11 +85,18 @@ class Segment(object):
         Takes: 
             img - the image to threshold
             area - pixel area to average over for determining the threshold
+            invert - if True, then areas above the threshold are set to zero
+                     and areas below it are set to the max value (False)
         Gives:
             img - the thresholded image
         """
+        if area is None:
+            area = self.thresh_area
         adaptiveMethod = cv2.cv.CV_ADAPTIVE_THRESH_GAUSSIAN_C 
-        thresholdType = cv2.cv.CV_THRESH_BINARY
+        if invert:
+            thresholdType = cv2.cv.CV_THRESH_BINARY_INV 
+        else:
+            thresholdType = cv2.cv.CV_THRESH_BINARY
         img = cv2.adaptiveThreshold(
                     np.uint8(img.round()), # must convert to uint8
                     255,                   # value to assign to matched pix
@@ -97,7 +106,7 @@ class Segment(object):
                     0)                     # blocksize
         return img
 
-    def open(self, img, ok_x=self.open_kernel_x, ok_y=self.open_kernel_y):
+    def open(self, img, ok_x=None, ok_y=None):
         """Perform a morphological open on the passed image.
         
         This uses the predefined opening kernels to reduce speckle. 
@@ -109,5 +118,22 @@ class Segment(object):
         Gives:
             img - the opened image
         """
+        if ok_x is None:
+            ok_x = self.open_kernel_x
+        if ok_y is None:
+            ok_y = self.open_kernel_y
         k =  np.ones((ok_y, ok_x))
         return cv2.dilate(cv2.erode(img, k),k)
+
+    def segment(self, img):
+        """Perform the default segmentation (threshold then open).
+        
+        Using the passed image and the current values for threshold area and 
+        opening kernel, perform a segmentation.
+        Takes:
+            img - the image to segment
+        Gives:
+            seg_img - the segmented image
+        """
+        return self.open(self.thresh(img))
+
