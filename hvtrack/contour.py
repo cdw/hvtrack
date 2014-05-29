@@ -23,47 +23,59 @@ class Contour(object):
     """
     def __init__(self, contour_area_min=10, contour_area_max=3000,
                  contour_perim_min=10, contour_perim_max=200,
-                 contour_ratio_min=2, contour_ratio_max=500):
+                 contour_ratio_min=None, contour_ratio_max=None):
         """
         Remember the multitude of parameters needed to filter contours.
         Takes:
-            contour_area_min - the minimum area enclosed by a valid contour
-            contour_area_max - the maximum area enclosed by a valid contour
-            contour_perim_min - the minimum perimeter of a valid contour
-            contour_perim_max - the maximum perimeter of a valid contour
-            contour_ratio_min - the minimum area/perimeter ratio
-            contour_ratio_max - the maximum area/perimeter ratio
+            contour_area_min - minimum area enclosed by a valid contour
+            contour_area_max - maximum area enclosed by a valid contour
+            contour_perim_min - minimum perimeter of a valid contour
+            contour_perim_max - maximum perimeter of a valid contour
+            contour_ratio_min - minimum area/perimeter ratio
+            contour_ratio_max - maximum area/perimeter ratio
         """
-        self.contour_area_min = contour_area_min
-        self.contour_area_max = contour_area_max
-        self.contour_perim_min = contour_perim_min
-        self.contour_perim_max = contour_perim_max
-        self.contour_ratio_min = contour_ratio_min
-        self.contour_ratio_max = contour_ratio_max
+        self.area_min = contour_area_min
+        self.area_max = contour_area_max
+        self.perim_min = contour_perim_min
+        self.perim_max = contour_perim_max
+        self.ratio_min = contour_ratio_min
+        self.ratio_max = contour_ratio_max
 
     def set_contour_area_min(self, contour_area_min):
         """Change the minimum contour area of interest."""
-        self.contour_area_min = contour_area_min
+        self.area_min = contour_area_min
 
     def set_contour_area_max(self, contour_area_max):
         """Change the maximum contour area of interest."""
-        self.contour_area_max = contour_area_max
+        self.area_max = contour_area_max
 
     def set_contour_perim_min(self, contour_perim_min):
         """Change the minimum contour perimeter of interest."""
-        self.contour_perim_min = contour_perim_min
+        self.perim_min = contour_perim_min
 
     def set_contour_perim_max(self, contour_perim_max):
         """Change the maximum contour perimeter of interest."""
-        self.contour_perim_max = contour_perim_max
+        self.perim_max = contour_perim_max
 
     def set_contour_ratio_min(self, contour_ratio_min):
         """Change the minimum contour ratio of interest."""
-        self.contour_ratio_min = contour_ratio_min
+        self.ratio_min = contour_ratio_min
 
     def set_contour_ratio_max(self, contour_ratio_max):
         """Change the maximum contour ratio of interest."""
-        self.contour_ratio_max = contour_ratio_max
+        self.ratio_max = contour_ratio_max
+
+    def print_filter_criteria(self):
+        """Print and return as a dict the filter criteria."""
+        criteria = {
+            "Area min": self.area_min,
+            "Area max": self.area_max,
+            "Perimeter min": self.perim_min,
+            "Perimeter max": self.perim_max,
+            "Ratio min": self.ratio_min,
+            "Ratio max": self.ratio_max}
+        print(criteria)
+        return criteria
 
     @staticmethod
     def contours_from_image(img):
@@ -74,9 +86,9 @@ class Contour(object):
         Gives:
             contours - a list of contours
         """
-        contours, hierarchy = cv2.findContours(img,
-                                               cv2.RETR_CCOMP,
-                                               cv2.CHAIN_APPROX_SIMPLE)
+        contours, _ = cv2.findContours(img,
+                                       cv2.RETR_CCOMP,
+                                       cv2.CHAIN_APPROX_SIMPLE)
         return contours
 
     @staticmethod
@@ -90,21 +102,29 @@ class Contour(object):
         """Return the centers of a list of contours."""
         return [self.single_contour_center(c) for c in contours]
 
+    def contour_meets_filters(self, contour):
+        """Check that a contour meets the filter requirements.
+
+        If a requirement value is None, it is not applied.
+        """
+        area = cv2.contourArea(contour)
+        perim = cv2.arcLength(contour, True)
+        ratio = area/(perim+0.01)  # 0.01 to prevent division by zero
+        more_or_none = lambda val, base: any((val > base, base is None))
+        less_or_none = lambda val, base: any((val < base, base is None))
+        if any((not more_or_none(area, self.area_min),
+                not less_or_none(area, self.area_max),
+                not more_or_none(perim, self.perim_min),
+                not less_or_none(perim, self.perim_max),
+                not more_or_none(ratio, self.ratio_min),
+                not less_or_none(ratio, self.ratio_max))):
+            return False
+        else:
+            return True
+
     def _filter_contours(self, contours):
         """Filter contours by area and perimeter sizes."""
-        out = []
-        for contour in contours:
-            area = cv2.contourArea(contour)
-            perim = cv2.arcLength(contour, True)
-            ratio = area/(perim+0.01)  # 0.01 to prevent division by zero
-            if all((area > self.contour_area_min,
-                    area < self.contour_area_max,
-                    perim > self.contour_perim_min,
-                    perim < self.contour_perim_max,
-                    ratio > self.contour_ratio_min,
-                    ratio < self.contour_ratio_max)):
-                out.append(contour)
-        return out
+        return filter(self.contour_meets_filters, contours)
 
     def contour_and_filter(self, img):
         """Contour and filter a binary image, returning a list of contours."""
