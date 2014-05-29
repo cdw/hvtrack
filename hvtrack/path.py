@@ -3,12 +3,12 @@
 """ path.py
 Created by Dave Williams on 2013.11.14
 
-path.py matches contour center points tracked over multiple frames to a single 
-object, creating its path. 
+path.py matches contour center points tracked over multiple frames to a single
+object, creating its path.
 """
 
-import numpy as np
 import cv2
+from numpy import hypot
 
 
 class Path(object):
@@ -16,8 +16,8 @@ class Path(object):
     The basic order:
         - check if new points are near ends of existing paths, add to path if
           such exists
-        - check if new points are near predicted next location of existing 
-          paths, add to path if such exists
+        - check if new points are near predicted next location of existing
+          paths, add to path if such exists (TODO)
         - if additional new points remain, form a new path for each
         - prune paths which have not had a new point added
         - produce a list of paths for the contour sequence
@@ -29,7 +29,7 @@ class Path(object):
         """Initialize the values needed for path tracking.
 
         Takes:
-            near - the pixel distance below which a point is considered near 
+            near - the pixel distance below which a point is considered near
                    the end of a track
         Gives:
             None
@@ -37,7 +37,6 @@ class Path(object):
         self.near = near
         self.paths = []
         self.dead_paths = []
-        self.contours = []
 
     def set_near(self, near):
         """Set how close a point has to be to count as near a track end."""
@@ -47,7 +46,6 @@ class Path(object):
         """Forget current traces to prepare for a new video."""
         self.paths = []
         self.dead_paths = []
-        self.contours = []
 
     @staticmethod
     def _center(contour):
@@ -58,7 +56,7 @@ class Path(object):
 
     def _nearby(self, path, contour):
         """True if a contour is nearby the end point of a current path.
-        
+
         Takes:
             path - a path to check the last point of for nearness
             contour - the contour to check against the path
@@ -68,8 +66,8 @@ class Path(object):
         """
         c_cent = self._center(contour)
         p_cent = self._center(path[-1][1])
-        distance = np.hypot(c_cent[0]-p_cent[0], c_cent[1]-p_cent[1])
-        close = distance<self.near
+        distance = hypot(c_cent[0]-p_cent[0], c_cent[1]-p_cent[1])
+        close = distance < self.near
         if close:
             return True
         else:
@@ -104,7 +102,7 @@ class Path(object):
         something appended to it this time step. This means that if a speckle
         appears near the tracked object, we'll have two entries for a single
         frame, but this seems a better option than having the track forked to
-        whichever speck comes first in the contour list.  
+        whichever speck comes first in the contour list.
         Takes:
             contour - the contour for which we wish to find a home
             time - the current frame number
@@ -113,7 +111,7 @@ class Path(object):
         """
         for i in range(len(self.paths)):
             path = self.paths.pop(0)
-            if self._nearby(path, contour)
+            if self._nearby(path, contour):
                 path.append([time, contour])
                 self.paths.append(path)
                 break
@@ -123,4 +121,23 @@ class Path(object):
             self.paths.append([[time, contour]])
         return
 
+    def contous_to_paths(self, contour_log):
+        """Parse a contour log into paths.
 
+        Convert contour logs, which is a list (by frame number) of lists (each
+        contour found in that frame) into a list of paths. Each path is a list
+        of contours and frame numbers thus: [[frame num, contour],
+        [frame num, contour], ... ]
+        Takes:
+            contour_log: list of contours by frame number
+        Give:
+            dead_paths: a list of all the completed paths
+        """
+        for time in range(len(contour_log)):
+            current_contours = contour_log[time]
+            self._sacrifice_dead_paths(time)
+            for contour in current_contours:
+                self._find_a_contour_a_home(contour, time)
+        for path in self.paths:
+            self.dead_paths.append(path)
+        return self.dead_paths
