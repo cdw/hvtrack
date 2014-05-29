@@ -30,16 +30,19 @@ class Path(object):
     Each path produced is in the format [[frame num, contour], [frame num,
     contour], ... ]
     """
-    def __init__(self, near=100):
+    def __init__(self, near=100, min_length=3):
         """Initialize the values needed for path tracking.
 
         Takes:
             near - the pixel distance below which a point is considered near
                    the end of a track
+            min_length - the minimum number of frames across which a path must 
+                         stretch to be counted
         Gives:
             None
         """
         self.near = near
+        self.min_path_frame_length = min_length
         self.paths = []
         self.dead_paths = []
 
@@ -56,6 +59,8 @@ class Path(object):
     def _center(contour):
         """Return the center of a single contour."""
         cm = cv2.moments(contour)
+        if cm['m00'] == 0 or cm['m00'] == 0: #  occurs with tiny contours
+            return contour.mean(0) 
         center = (cm['m10']/cm['m00'], cm['m01']/cm['m00'])
         return center
 
@@ -126,7 +131,17 @@ class Path(object):
             self.paths.append([[time, contour]])
         return
 
-    def contous_to_paths(self, contour_log):
+    def path_meets_filters(self, path):
+        """Check that a path meets the filter requirements.
+
+        If a requirement value is None, it is not applied.
+        """
+        if len(path)<self.min_path_frame_length:
+            return False
+        else:
+            return True
+
+    def contours_to_paths(self, contour_log):
         """Parse a contour log into paths.
 
         Convert contour logs, which is a list (by frame number) of lists (each
@@ -145,4 +160,4 @@ class Path(object):
                 self._find_a_contour_a_home(contour, time)
         for path in self.paths:
             self.dead_paths.append(path)
-        return self.dead_paths
+        return filter(self.path_meets_filters, self.dead_paths)
