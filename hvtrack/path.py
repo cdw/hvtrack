@@ -11,6 +11,11 @@ import cv2
 from numpy import hypot
 
 
+def create_path_object():
+    """Create a path object with default parameters."""
+    return Path()
+
+
 class Path(object):
     """Match contour center points over frames, making a path.
     The basic order:
