@@ -8,7 +8,7 @@ object, creating its path.
 """
 
 import cv2
-from numpy import hypot
+import numpy as np
 
 
 def create_path_object():
@@ -36,7 +36,7 @@ class Path(object):
         Takes:
             near - the pixel distance below which a point is considered near
                    the end of a track
-            min_length - the minimum number of frames across which a path must 
+            min_length - the minimum number of frames across which a path must
                          stretch to be counted
         Gives:
             None
@@ -59,8 +59,8 @@ class Path(object):
     def _center(contour):
         """Return the center of a single contour."""
         cm = cv2.moments(contour)
-        if cm['m00'] == 0 or cm['m00'] == 0: #  occurs with tiny contours
-            return contour.mean(0) 
+        if cm['m00'] == 0 or cm['m00'] == 0:  # occurs with tiny contours
+            return contour.mean(0)
         center = (cm['m10']/cm['m00'], cm['m01']/cm['m00'])
         return center
 
@@ -76,7 +76,7 @@ class Path(object):
         """
         c_cent = self._center(contour)
         p_cent = self._center(path[-1][1])
-        distance = hypot(c_cent[0]-p_cent[0], c_cent[1]-p_cent[1])
+        distance = np.hypot(c_cent[0]-p_cent[0], c_cent[1]-p_cent[1])
         close = distance < self.near
         if close:
             return True
@@ -136,7 +136,7 @@ class Path(object):
 
         If a requirement value is None, it is not applied.
         """
-        if len(path)<self.min_path_frame_length:
+        if len(path) < self.min_path_frame_length:
             return False
         else:
             return True
@@ -160,4 +160,21 @@ class Path(object):
                 self._find_a_contour_a_home(contour, time)
         for path in self.paths:
             self.dead_paths.append(path)
-        return filter(self.path_meets_filters, self.dead_paths)
+        self.dead_paths = filter(self.path_meets_filters, self.dead_paths)
+        return self.dead_paths
+
+    def save_path_centers(self, filename, path):
+        """Write a path out as an array of frame numbers and center points.
+
+        The output file takes the form of an array where each line is
+        formatted: [frame number, contour_center_x, contour_center_y]
+        Takes:
+            filename - the output filename
+            path - the path to save
+        Gives:
+            None
+        """
+        time_and_center = lambda c: (c[0], self._center(c[1])[0],
+                                     self._center(c[1])[1])
+        centers = np.array([time_and_center(c) for c in path])
+        np.savetxt(filename, centers, '%.8e', ',')
