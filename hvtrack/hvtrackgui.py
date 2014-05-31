@@ -12,6 +12,7 @@ import tkFileDialog
 import hummertracker
 import os
 
+
 class Interface(ttk.Frame):
     """Subclassed interface to the rest of the program
     """
@@ -29,12 +30,28 @@ class Interface(ttk.Frame):
         self.style = ttk.Style()
         self.style.theme_use("default")
         self.pack(fill=tk.BOTH, expand=1)
-        quitButton = ttk.Button(self, text="Quit", command=self.quit)
-        quitButton.pack(side=tk.RIGHT, padx=5, pady=5)
-        openButton = ttk.Button(self, text="File", command=self.askOpen)
-        openButton.pack(side=tk.RIGHT, padx=5, pady=5)
-        openButton = ttk.Button(self, text="Directory", command=self.askDir)
-        openButton.pack(side=tk.RIGHT, padx=5, pady=5)
+        # Create subframes to contain each section
+        self.video_f = ttk.Frame(self.parent)
+        self.video_f.pack(side=tk.TOP)
+        self.segment_f = ttk.Frame(self.parent)
+        self.segment_f.pack(side=tk.BOTTOM)
+        self.contour_f = ttk.Frame(self.parent)
+        self.contour_f.pack(side=tk.BOTTOM)
+        self.path_f = ttk.Frame(self.parent)
+        self.path_f.pack(side=tk.BOTTOM)
+        #Video
+        videoLabel = ttk.Label(self.video_f, text="Video")
+        videoLabel.pack(side=tk.TOP, padx=5, pady=5)
+        quitButton = ttk.Button(self.video_f, text="Quit", command=self.quit)
+        quitButton.pack(side=tk.BOTTOM, padx=5, pady=5)
+        openButton = ttk.Button(self.video_f, text="File", command=self.askOpen)
+        openButton.pack(side=tk.BOTTOM, padx=5, pady=5)
+        openButton = ttk.Button(self.video_f, text="Dir", command=self.askDir)
+        openButton.pack(side=tk.BOTTOM, padx=5, pady=5)
+        segmentLabel = ttk.Label(self.segment_f, text="Foreground segmentation")
+        segmentLabel.pack(side=tk.TOP, padx=5, pady=5)
+        threshLabel = ttk.Label(self.segment_f, text="Threshold Area")
+        threshLabel.pack(side=tk.BOTTOM, padx=5, pady=5)
     
     def askOpen(self):
         """Ask for a file, then run the tracker on it"""
