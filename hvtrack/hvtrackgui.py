@@ -14,8 +14,7 @@ import os
 
 
 class Interface(ttk.Frame):
-    """Subclassed interface to the rest of the program
-    """
+    """Subclassed interface to the rest of the program."""
     def __init__(self, parent):
         ttk.Frame.__init__(self, parent)   
         self.parent = parent
@@ -32,15 +31,17 @@ class Interface(ttk.Frame):
         self.pack(fill=tk.BOTH, expand=1)
         # Create subframes to contain each section
         self.video_f = ttk.Frame(self.parent)
-        self.video_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES, fill=tk.BOTH)
+        self.video_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES,
+                          fill=tk.BOTH, ipadx=10, ipady=10)
         self.segment_f = ttk.Frame(self.parent)
         self.segment_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES,
-                            fill=tk.BOTH)
+                            fill=tk.BOTH, ipadx=10, ipady=10)
         self.contour_f = ttk.Frame(self.parent)
         self.contour_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES,
-                            fill=tk.BOTH)
+                            fill=tk.BOTH, ipadx=10, ipady=10)
         self.path_f = ttk.Frame(self.parent)
-        self.path_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES, fill=tk.BOTH)
+        self.path_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES,
+                         fill=tk.BOTH, ipadx=10, ipady=10)
         #Quit
         quitButton = ttk.Button(self, text="Quit", command=self.quit)
         quitButton.pack(side=tk.BOTTOM, padx=5, pady=5)
@@ -57,7 +58,8 @@ class Interface(ttk.Frame):
         #videoLabel.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.NW)
         #openButton.pack(side=tk.BOTTOM, padx=5, pady=5)
         #openButton.pack(side=tk.BOTTOM, padx=5, pady=5)
-        videoLabel.grid(row=1, column=1, padx=5, pady=15)
+        videoLabel.grid(row=1, column=1, padx=5, pady=15,
+                        columnspan=3, sticky=tk.W)
         fileLabel.grid(row=2, column=1, padx=5, pady=5)
         fileEntry.grid(row=2, column=2, padx=5, pady=5)
         fileButton.grid(row=2, column=3, padx=5, pady=5)
@@ -73,8 +75,8 @@ class Interface(ttk.Frame):
         openxEntry = ttk.Entry(self.segment_f, width=7)
         openyLabel = ttk.Label(self.segment_f, text="Opening Y")
         openyEntry = ttk.Entry(self.segment_f, width=7)
-        #threshLabel.pack(side=tk.RIGHT, padx=5, pady=5)
-        segmentLabel.grid(row=1, column=1, padx=5, pady=15)
+        segmentLabel.grid(row=1, column=1, padx=5, pady=15,
+                          columnspan=3, sticky=tk.W)
         threshLabel.grid(row=2, column=1, padx=5, pady=5)
         threshEntry.grid(row=2, column=2, padx=5, pady=5)
         openxLabel.grid(row=2, column=3, padx=5, pady=5)
@@ -95,7 +97,8 @@ class Interface(ttk.Frame):
         c_ratio_minEntry = ttk.Entry(self.contour_f, width=10)
         c_ratio_maxLabel = ttk.Label(self.contour_f, text="Max ratio")
         c_ratio_maxEntry = ttk.Entry(self.contour_f, width=10)
-        contourLabel.grid(row=1, column=1, padx=5, pady=15)
+        contourLabel.grid(row=1, column=1, padx=5, pady=15,
+                          columnspan=3, sticky=tk.W)
         c_area_minLabel.grid(row=2, column=1)
         c_area_minEntry.grid(row=2, column=2)
         c_area_maxLabel.grid(row=2, column=3)
@@ -112,7 +115,8 @@ class Interface(ttk.Frame):
         pathLabel = ttk.Label(self.path_f, text="Path matching")
         nearLabel = ttk.Label(self.path_f, text="Nearness")
         nearEntry = ttk.Entry(self.path_f, width=10)
-        pathLabel.grid(row=1, column=1, padx=5, pady=15)
+        pathLabel.grid(row=1, column=1, padx=5, pady=15,
+                       columnspan=2, sticky=tk.W)
         nearLabel.grid(row=2, column=1)
         nearEntry.grid(row=2, column=2)
 
