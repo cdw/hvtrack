@@ -11,17 +11,158 @@ import ttk
 import tkFileDialog
 import hummertracker
 import os
+# Local imports
+import video
+import background
+import segment
+import contour
+import path
+
+
+def disp(input_num_or_none):
+    """Numbers returned as integer strings, Nones as blank strings."""
+    if input_num_or_none is not None:
+        return "%i"%input_num_or_none
+    else:
+        return ""
+
+class SegmentFrame(ttk.Frame):
+    """Configure a segment instance."""
+    def __init__(self, parent, segment):
+        self.segment = segment  # A passed segment class instance
+        ## Gui setup
+        ttk.Frame.__init__(self, parent)   
+        self.parent = parent
+        self.init_ui()
+
+    def init_ui(self):
+        """Put all the UI widgets where they go."""
+        self.style = ttk.Style()
+        self.style.theme_use("default")
+        self.pack(fill=tk.BOTH, expand=1)
+        ## Create widgets
+        segmentLabel = ttk.Label(self, text="Foreground segmentation")
+        threshLabel = ttk.Label(self, text="Threshold Area")
+        threshEntry = ttk.Entry(self, width=7)
+        openxLabel = ttk.Label(self, text="Opening X")
+        openxEntry = ttk.Entry(self, width=7)
+        openyLabel = ttk.Label(self, text="Opening Y")
+        openyEntry = ttk.Entry(self, width=7)
+        ## Pack widgets
+        segmentLabel.grid(row=1, column=1, padx=5, pady=15,
+                          columnspan=3, sticky=tk.W)
+        threshLabel.grid(row=2, column=1, padx=5, pady=5)
+        threshEntry.grid(row=2, column=2, padx=5, pady=5)
+        openxLabel.grid(row=2, column=3, padx=5, pady=5)
+        openxEntry.grid(row=2, column=4, padx=5, pady=5)
+        openyLabel.grid(row=2, column=5, padx=5, pady=5)
+        openyEntry.grid(row=2, column=6, padx=5, pady=5)
+        ## Set default values
+        threshEntry.delete(0, tk.END)
+        threshEntry.insert(0, disp(self.segment.thresh_area))
+        openxEntry.delete(0, tk.END)
+        openxEntry.insert(0, disp(self.segment.open_kernel_x))
+        openyEntry.delete(0, tk.END)
+        openyEntry.insert(0, disp(self.segment.open_kernel_y))
+
+
+class ContourFrame(ttk.Frame):
+    """Configure a contour instance."""
+    def __init__(self, parent, contour):
+        self.contour = contour  # A passed contour class instance
+        ttk.Frame.__init__(self, parent)   
+        self.parent = parent
+        self.init_ui()
+
+    def init_ui(self):
+        """Put all the UI widgets where they go."""
+        self.style = ttk.Style()
+        self.style.theme_use("default")
+        self.pack(fill=tk.BOTH, expand=1)
+        ## Create widgets
+        contour_label = ttk.Label(self, text="Contour filtering")
+        area_min_label = ttk.Label(self, text="Min area")
+        area_min_entry = ttk.Entry(self, width=10)
+        area_max_label = ttk.Label(self, text="Max area")
+        area_max_entry = ttk.Entry(self, width=10)
+        perim_min_label = ttk.Label(self, text="Min perim")
+        perim_min_entry = ttk.Entry(self, width=10)
+        perim_max_label = ttk.Label(self, text="Max perim")
+        perim_max_entry = ttk.Entry(self, width=10)
+        ratio_min_label = ttk.Label(self, text="Min ratio")
+        ratio_min_entry = ttk.Entry(self, width=10)
+        ratio_max_label = ttk.Label(self, text="Max ratio")
+        ratio_max_entry = ttk.Entry(self, width=10)
+        ## Pack widgets
+        contour_label.grid(row=1, column=1, padx=5, pady=15,
+                          columnspan=3, sticky=tk.W)
+        area_min_label.grid(row=2, column=1)
+        area_min_entry.grid(row=2, column=2)
+        area_max_label.grid(row=2, column=3)
+        area_max_entry.grid(row=2, column=4)
+        perim_min_label.grid(row=3, column=1)
+        perim_min_entry.grid(row=3, column=2)
+        perim_max_label.grid(row=3, column=3)
+        perim_max_entry.grid(row=3, column=4)
+        ratio_min_label.grid(row=4, column=1)
+        ratio_min_entry.grid(row=4, column=2)
+        ratio_max_label.grid(row=4, column=3)
+        ratio_max_entry.grid(row=4, column=4)
+        # Set default values
+        area_min_entry.delete(0, tk.END)
+        area_min_entry.insert(0, disp(self.contour.area_min))
+        area_max_entry.delete(0, tk.END)
+        area_max_entry.insert(0, disp(self.contour.area_max))
+        perim_min_entry.delete(0, tk.END)
+        perim_min_entry.insert(0, disp(self.contour.perim_min))
+        perim_max_entry.delete(0, tk.END)
+        perim_max_entry.insert(0, disp(self.contour.perim_max))
+        ratio_min_entry.delete(0, tk.END)
+        ratio_min_entry.insert(0, disp(self.contour.ratio_min))
+        ratio_max_entry.delete(0, tk.END)
+        ratio_max_entry.insert(0, disp(self.contour.ratio_max))
+        
+class PathFrame(ttk.Frame):
+    """Configure a path instance."""
+    def __init__(self, parent, path):
+        self.path = path  # A passed path class instance
+        ttk.Frame.__init__(self, parent)   
+        self.parent = parent
+        self.init_ui()
+
+    def init_ui(self):
+        """Put all the UI widgets where they go."""
+        self.style = ttk.Style()
+        self.style.theme_use("default")
+        self.pack(fill=tk.BOTH, expand=1)
+        ## Create widgets
+        pathLabel = ttk.Label(self, text="Path matching")
+        nearLabel = ttk.Label(self, text="Nearness")
+        nearEntry = ttk.Entry(self, width=10)
+        ## Pack widgets
+        pathLabel.grid(row=1, column=1, padx=5, pady=15,
+                       columnspan=2, sticky=tk.W)
+        nearLabel.grid(row=2, column=1)
+        nearEntry.grid(row=2, column=2)
+        ## Set default values
+        nearEntry.delete(0, tk.END)
+        nearEntry.insert(0, disp(self.path.near))
 
 
 class Interface(ttk.Frame):
     """Subclassed interface to the rest of the program."""
     def __init__(self, parent):
+        ## Set the GUI state
+        self.filename = None
+        self.directory = None
+        ## Set up links to persistent processing classes
+        self.segment = segment.create_segment_object()
+        self.contour = contour.create_contour_object()
+        self.path = path.create_path_object()
+        ## Start the actual interface
         ttk.Frame.__init__(self, parent)   
         self.parent = parent
         self.initUI()   #start it up
-        ## Next bits are the GUI state
-        self.filename = None
-        self.directory = None
         
     def initUI(self):
         """Put all the UI widgets where they go"""
@@ -33,13 +174,13 @@ class Interface(ttk.Frame):
         self.video_f = ttk.Frame(self.parent)
         self.video_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES,
                           fill=tk.BOTH, ipadx=10, ipady=10)
-        self.segment_f = ttk.Frame(self.parent)
+        self.segment_f = SegmentFrame(self.parent, self.segment)
         self.segment_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES,
                             fill=tk.BOTH, ipadx=10, ipady=10)
-        self.contour_f = ttk.Frame(self.parent)
+        self.contour_f = ContourFrame(self.parent, self.contour)
         self.contour_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES,
                             fill=tk.BOTH, ipadx=10, ipady=10)
-        self.path_f = ttk.Frame(self.parent)
+        self.path_f = PathFrame(self.parent, self.path)
         self.path_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES,
                          fill=tk.BOTH, ipadx=10, ipady=10)
         #Quit
@@ -66,59 +207,6 @@ class Interface(ttk.Frame):
         dirLabel.grid(row=3, column=1, padx=5, pady=5)
         dirEntry.grid(row=3, column=2, padx=5, pady=5)
         dirButton.grid(row=3, column=3, padx=5, pady=5)
-        #Segmentation
-        segmentLabel = ttk.Label(self.segment_f, text="Foreground segmentation")
-        #segmentLabel.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.NW)
-        threshLabel = ttk.Label(self.segment_f, text="Threshold Area")
-        threshEntry = ttk.Entry(self.segment_f, width=7)
-        openxLabel = ttk.Label(self.segment_f, text="Opening X")
-        openxEntry = ttk.Entry(self.segment_f, width=7)
-        openyLabel = ttk.Label(self.segment_f, text="Opening Y")
-        openyEntry = ttk.Entry(self.segment_f, width=7)
-        segmentLabel.grid(row=1, column=1, padx=5, pady=15,
-                          columnspan=3, sticky=tk.W)
-        threshLabel.grid(row=2, column=1, padx=5, pady=5)
-        threshEntry.grid(row=2, column=2, padx=5, pady=5)
-        openxLabel.grid(row=2, column=3, padx=5, pady=5)
-        openxEntry.grid(row=2, column=4, padx=5, pady=5)
-        openyLabel.grid(row=2, column=5, padx=5, pady=5)
-        openyEntry.grid(row=2, column=6, padx=5, pady=5)
-        #Contour
-        contourLabel = ttk.Label(self.contour_f, text="Contour filtering")
-        c_area_minLabel = ttk.Label(self.contour_f, text="Min area")
-        c_area_minEntry = ttk.Entry(self.contour_f, width=10)
-        c_area_maxLabel = ttk.Label(self.contour_f, text="Max area")
-        c_area_maxEntry = ttk.Entry(self.contour_f, width=10)
-        c_perim_minLabel = ttk.Label(self.contour_f, text="Min perim")
-        c_perim_minEntry = ttk.Entry(self.contour_f, width=10)
-        c_perim_maxLabel = ttk.Label(self.contour_f, text="Max perim")
-        c_perim_maxEntry = ttk.Entry(self.contour_f, width=10)
-        c_ratio_minLabel = ttk.Label(self.contour_f, text="Min ratio")
-        c_ratio_minEntry = ttk.Entry(self.contour_f, width=10)
-        c_ratio_maxLabel = ttk.Label(self.contour_f, text="Max ratio")
-        c_ratio_maxEntry = ttk.Entry(self.contour_f, width=10)
-        contourLabel.grid(row=1, column=1, padx=5, pady=15,
-                          columnspan=3, sticky=tk.W)
-        c_area_minLabel.grid(row=2, column=1)
-        c_area_minEntry.grid(row=2, column=2)
-        c_area_maxLabel.grid(row=2, column=3)
-        c_area_maxEntry.grid(row=2, column=4)
-        c_perim_minLabel.grid(row=3, column=1)
-        c_perim_minEntry.grid(row=3, column=2)
-        c_perim_maxLabel.grid(row=3, column=3)
-        c_perim_maxEntry.grid(row=3, column=4)
-        c_ratio_minLabel.grid(row=4, column=1)
-        c_ratio_minEntry.grid(row=4, column=2)
-        c_ratio_maxLabel.grid(row=4, column=3)
-        c_ratio_maxEntry.grid(row=4, column=4)
-        #Path
-        pathLabel = ttk.Label(self.path_f, text="Path matching")
-        nearLabel = ttk.Label(self.path_f, text="Nearness")
-        nearEntry = ttk.Entry(self.path_f, width=10)
-        pathLabel.grid(row=1, column=1, padx=5, pady=15,
-                       columnspan=2, sticky=tk.W)
-        nearLabel.grid(row=2, column=1)
-        nearEntry.grid(row=2, column=2)
 
 
     def askOpen(self):
