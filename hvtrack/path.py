@@ -30,7 +30,7 @@ class Path(object):
     Each path produced is in the format [[frame num, contour], [frame num,
     contour], ... ]
     """
-    def __init__(self, near=100, min_length=3):
+    def __init__(self, near=None, min_length=None):
         """Initialize the values needed for path tracking.
 
         Takes:
@@ -41,14 +41,25 @@ class Path(object):
         Gives:
             None
         """
-        self.near = near
-        self.min_path_frame_length = min_length
+        # Default values
+        self.near_default = 100
+        self.min_length_default = 3
+        default_if_none = lambda val, de: de if val is None else val
+        self.near = default_if_none(near, self.near_default)
+        self.min_length = default_if_none(min_length, self.min_length_default)
+        # Initialize path storages
         self.paths = []
         self.dead_paths = []
 
     def set_near(self, near):
         """Set how close a point has to be to count as near a track end."""
-        self.near = near
+        if type(near) is str:
+            if near == "":
+                self.near = self.near_default
+            else:
+                self.near = int(round(float(near)))
+        elif near is None:
+            self.near = self.near_default
 
     def forget_paths(self):
         """Forget current traces to prepare for a new video."""
@@ -136,10 +147,7 @@ class Path(object):
 
         If a requirement value is None, it is not applied.
         """
-        if len(path) < self.min_path_frame_length:
-            return False
-        else:
-            return True
+        return len(path) >= self.min_length
 
     def contours_to_paths(self, contour_log):
         """Parse a contour log into paths.
