@@ -67,27 +67,27 @@ class Contour(object):
 
     def set_contour_area_min(self, a_min):
         """Change the minimum contour area of interest."""
-        self.area_min = self._passed_to_int(a_min, self._area_min_default)
+        self.area_min = self._passed_to_int(a_min)
 
     def set_contour_area_max(self, a_max):
         """Change the maximum contour area of interest."""
-        self.area_max = self._passed_to_int(a_max, self._area_max_default)
+        self.area_max = self._passed_to_int(a_max)
 
     def set_contour_perim_min(self, p_min):
         """Change the minimum contour perimeter of interest."""
-        self.perim_min = self._passed_to_int(p_min, self._perim_min_default)
+        self.perim_min = self._passed_to_int(p_min)
 
     def set_contour_perim_max(self, p_max):
         """Change the maximum contour perimeter of interest."""
-        self.perim_max = self._passed_to_int(p_max, self._perim_max_default)
+        self.perim_max = self._passed_to_int(p_max)
 
     def set_contour_ratio_min(self, r_min):
         """Change the minimum contour ratio of interest."""
-        self.ratio_min = self._passed_to_int(r_min, self._ratio_min_default)
+        self.ratio_min = self._passed_to_int(r_min)
 
     def set_contour_ratio_max(self, r_max):
         """Change the maximum contour ratio of interest."""
-        self.ratio_max = self._passed_to_int(r_max, self._ratio_max_default)
+        self.ratio_max = self._passed_to_int(r_max)
 
     def print_filter_criteria(self):
         """Print and return as a dict the filter criteria."""
