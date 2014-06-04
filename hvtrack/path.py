@@ -55,11 +55,11 @@ class Path(object):
         """Set how close a point has to be to count as near a track end."""
         if type(near) is str:
             if near == "":
-                self.near = self.near_default
+                self.near = None
             else:
                 self.near = int(round(float(near)))
         elif near is None:
-            self.near = self.near_default
+            self.near = None
 
     def forget_paths(self):
         """Forget current traces to prepare for a new video."""
