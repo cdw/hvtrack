@@ -19,6 +19,7 @@ import contour
 import path
 
 
+# Utility function
 def disp(input_num_or_none):
     """Numbers returned as integer strings, Nones as blank strings."""
     if input_num_or_none is not None:
@@ -26,6 +27,19 @@ def disp(input_num_or_none):
     else:
         return ""
 
+def bind_entry(widget, call):
+    """Bind an entry widget to a call for focus loss or hitting return."""
+    widget.bind('<Return>', call)
+    widget.bind('<FocusOut>', call)
+    return widget
+
+def set_entry(widget, value):
+    """Clear and set an entry widget."""
+    widget.delete(0, tk.END)
+    widget.insert(0, disp(value))
+
+
+# Piecewise frames
 class SegmentFrame(ttk.Frame):
     """Configure a segment instance."""
     def __init__(self, parent, segment):
@@ -41,29 +55,40 @@ class SegmentFrame(ttk.Frame):
         self.style.theme_use("default")
         self.pack(fill=tk.BOTH, expand=1)
         ## Create widgets
-        segmentLabel = ttk.Label(self, text="Foreground segmentation")
-        threshLabel = ttk.Label(self, text="Threshold Area")
-        threshEntry = ttk.Entry(self, width=7)
-        openxLabel = ttk.Label(self, text="Opening X")
-        openxEntry = ttk.Entry(self, width=7)
-        openyLabel = ttk.Label(self, text="Opening Y")
-        openyEntry = ttk.Entry(self, width=7)
+        segment_label = ttk.Label(self, text="Foreground segmentation")
+        thresh_label = ttk.Label(self, text="Threshold Area")
+        thresh_entry = ttk.Entry(self, width=7)
+        open_x_label = ttk.Label(self, text="Opening X")
+        open_x_entry = ttk.Entry(self, width=7)
+        open_y_label = ttk.Label(self, text="Opening Y")
+        open_y_entry = ttk.Entry(self, width=7)
         ## Pack widgets
-        segmentLabel.grid(row=1, column=1, padx=5, pady=15,
+        segment_label.grid(row=1, column=1, padx=5, pady=15,
                           columnspan=3, sticky=tk.W)
-        threshLabel.grid(row=2, column=1, padx=5, pady=5)
-        threshEntry.grid(row=2, column=2, padx=5, pady=5)
-        openxLabel.grid(row=2, column=3, padx=5, pady=5)
-        openxEntry.grid(row=2, column=4, padx=5, pady=5)
-        openyLabel.grid(row=2, column=5, padx=5, pady=5)
-        openyEntry.grid(row=2, column=6, padx=5, pady=5)
+        thresh_label.grid(row=2, column=1, padx=5, pady=5)
+        thresh_entry.grid(row=2, column=2, padx=5, pady=5)
+        open_x_label.grid(row=2, column=3, padx=5, pady=5)
+        open_x_entry.grid(row=2, column=4, padx=5, pady=5)
+        open_y_label.grid(row=2, column=5, padx=5, pady=5)
+        open_y_entry.grid(row=2, column=6, padx=5, pady=5)
         ## Set default values
-        threshEntry.delete(0, tk.END)
-        threshEntry.insert(0, disp(self.segment.thresh_area))
-        openxEntry.delete(0, tk.END)
-        openxEntry.insert(0, disp(self.segment.open_kernel_x))
-        openyEntry.delete(0, tk.END)
-        openyEntry.insert(0, disp(self.segment.open_kernel_y))
+        set_entry(thresh_entry, self.segment.thresh_area)
+        set_entry(open_x_entry, self.segment.open_kernel_x)
+        set_entry(open_y_entry, self.segment.open_kernel_y)
+        ## Bind widgets
+        self.thresh_entry = bind_entry(thresh_entry, self.thresh_call)
+        self.open_x_entry = bind_entry(open_x_entry, self.open_x_call)
+        self.open_y_entry = bind_entry(open_y_entry, self.open_y_call)
+
+    # Set values function calls
+    def thresh_call(self, *args):
+        self.segment.set_thresh_area(self.thresh_entry.get())
+
+    def open_x_call(self, *args):
+        self.segment.set_open_kernal_x(self.open_x_entry.get())
+
+    def open_y_call(self, *args):
+        self.segment.set_open_kernal_y(self.open_y_entry.get())
 
 
 class ContourFrame(ttk.Frame):
@@ -109,18 +134,39 @@ class ContourFrame(ttk.Frame):
         ratio_max_label.grid(row=4, column=3)
         ratio_max_entry.grid(row=4, column=4)
         ## Set default values
-        area_min_entry.delete(0, tk.END)
-        area_min_entry.insert(0, disp(self.contour.area_min))
-        area_max_entry.delete(0, tk.END)
-        area_max_entry.insert(0, disp(self.contour.area_max))
-        perim_min_entry.delete(0, tk.END)
-        perim_min_entry.insert(0, disp(self.contour.perim_min))
-        perim_max_entry.delete(0, tk.END)
-        perim_max_entry.insert(0, disp(self.contour.perim_max))
-        ratio_min_entry.delete(0, tk.END)
-        ratio_min_entry.insert(0, disp(self.contour.ratio_min))
-        ratio_max_entry.delete(0, tk.END)
-        ratio_max_entry.insert(0, disp(self.contour.ratio_max))
+        set_entry(area_min_entry, self.contour.area_min)
+        set_entry(area_max_entry, self.contour.area_max)
+        set_entry(perim_min_entry, self.contour.perim_min)
+        set_entry(perim_max_entry, self.contour.perim_max)
+        set_entry(ratio_min_entry, self.contour.ratio_min)
+        set_entry(ratio_max_entry, self.contour.ratio_max)
+        ## Bind widgets
+        self.area_min_entry = bind_entry(area_min_entry, self.area_min_call)
+        self.area_max_entry = bind_entry(area_max_entry, self.area_max_call)
+        self.perim_min_entry = bind_entry(perim_min_entry, self.perim_min_call)
+        self.perim_max_entry = bind_entry(perim_max_entry, self.perim_max_call)
+        self.ratio_min_entry = bind_entry(ratio_min_entry, self.ratio_min_call)
+        self.ratio_max_entry = bind_entry(ratio_max_entry, self.ratio_max_call)
+
+    # Set values function calls
+    def area_min_call(self, *args):
+        self.contour.set_contour_area_min(self.area_min_entry.get())
+
+    def area_max_call(self, *args):
+        self.contour.set_contour_area_max(self.area_max_entry.get())
+
+    def perim_min_call(self, *args):
+        self.contour.set_contour_perim_min(self.perim_min_entry.get())
+
+    def perim_max_call(self, *args):
+        self.contour.set_contour_perim_max(self.perim_max_entry.get())
+
+    def ratio_min_call(self, *args):
+        self.contour.set_contour_ratio_min(self.ratio_min_entry.get())
+
+    def ratio_max_call(self, *args):
+        self.contour.set_contour_ratio_max(self.ratio_max_entry.get())
+
 
 class PathFrame(ttk.Frame):
     """Configure a path instance."""
@@ -137,25 +183,22 @@ class PathFrame(ttk.Frame):
         self.style.theme_use("default")
         self.pack(fill=tk.BOTH, expand=1)
         ## Create widgets
-        pathLabel = ttk.Label(self, text="Path matching")
-        nearLabel = ttk.Label(self, text="Nearness")
-        nearEntry = ttk.Entry(self, width=10)
+        path_label = ttk.Label(self, text="Path matching")
+        near_label = ttk.Label(self, text="Nearness")
+        near_entry = ttk.Entry(self, width=10)
         ## Pack widgets
-        pathLabel.grid(row=1, column=1, padx=5, pady=15,
+        path_label.grid(row=1, column=1, padx=5, pady=15,
                        columnspan=2, sticky=tk.W)
-        nearLabel.grid(row=2, column=1)
-        nearEntry.grid(row=2, column=2)
+        near_label.grid(row=2, column=1)
+        near_entry.grid(row=2, column=2)
         ## Set default values
-        nearEntry.delete(0, tk.END)
-        nearEntry.insert(0, disp(self.path.near))
+        set_entry(near_entry, self.path.near)
         ## Bind widgets
-        nearEntry.bind('<Return>', self.near_call)
-        nearEntry.bind('<FocusOut>', self.near_call)
-        self.nearEntry = nearEntry
+        self.near_entry = bind_entry(near_entry, self.near_call)
 
     def near_call(self, *args):
         """Write the entry value to the path variable."""
-        self.path.set_near(self.nearEntry.get())
+        self.path.set_near(self.near_entry.get())
 
 
 class Interface(ttk.Frame):
@@ -203,11 +246,6 @@ class Interface(ttk.Frame):
         dirLabel = ttk.Label(self.video_f, text="Directory:")
         dirEntry = ttk.Entry(self.video_f, width=30)
         dirButton = ttk.Button(self.video_f, text="Dir", command=self.askDir)
-        #openButton = ttk.Button(self.video_f, text="File", command=self.askOpen)
-        #openButton = ttk.Button(self.video_f, text="Dir", command=self.askDir)
-        #videoLabel.pack(side=tk.TOP, padx=5, pady=5, anchor=tk.NW)
-        #openButton.pack(side=tk.BOTTOM, padx=5, pady=5)
-        #openButton.pack(side=tk.BOTTOM, padx=5, pady=5)
         videoLabel.grid(row=1, column=1, padx=5, pady=15,
                         columnspan=3, sticky=tk.W)
         fileLabel.grid(row=2, column=1, padx=5, pady=5)
@@ -216,7 +254,6 @@ class Interface(ttk.Frame):
         dirLabel.grid(row=3, column=1, padx=5, pady=5)
         dirEntry.grid(row=3, column=2, padx=5, pady=5)
         dirButton.grid(row=3, column=3, padx=5, pady=5)
-
 
     def askOpen(self):
         """Ask for a file, then run the tracker on it"""
