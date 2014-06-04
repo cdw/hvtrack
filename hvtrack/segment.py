@@ -10,9 +10,11 @@ tracks them over time.
 import numpy as np
 import cv2
 
+
 def create_segment_object():
     """Create a segmentation object with default parameters."""
     return Segment()
+
 
 class Segment(object):
     """Detect foreground objects, generate tracks of them over time.
@@ -21,35 +23,60 @@ class Segment(object):
         - erode and dilate the image to remove smaller speckles
         - provide a resulting final binary image
     """
-    def __init__(self, min_thresh=10, thresh_area=101,
-                 open_kernel_x=10, open_kernel_y=10):
+    def __init__(self, min_thresh=None, thresh_area=None,
+                 open_x=None, open_y=None):
         """Initialize the values we will use during segmentation.
 
         Takes:
             min_thresh - the minimum threshold value to count as foreground
             thresh_area - the area to consider when adaptively thresholding
-            open_kernel_x - the x scale of object to select for in opening
-            open_kernel_y - the y scale of object to select for in opening
+            open_x - the x scale of object to select for in opening, in pix
+            open_y - the y scale of object to select for in opening, in pix
         Gives:
             None
         """
-        self.min_thresh = min_thresh
-        self.thresh_area = thresh_area
-        self.open_kernel_x = open_kernel_x
-        self.open_kernel_y = open_kernel_y
+        # Default values
+        self._min_t_default = 10
+        self._t_area_default = 101
+        self._open_x_default = 10
+        self._open_y_default = 10
+        # Set current values from passed values
+        default_if_none = lambda val, de: de if val is None else val
+        self.min_thresh = default_if_none(min_thresh, self._min_t_default)
+        self.thresh_area = default_if_none(thresh_area, self._t_area_default)
+        self.open_kernel_x = default_if_none(open_x, self._open_x_default)
+        self.open_kernel_y = default_if_none(open_y, self._open_y_default)
+
+    @staticmethod
+    def _passed_to_int(passed):
+        """Convert passed (probably string) value for setting a local int."""
+        if type(passed) is str:
+            if passed == "":
+                return None
+            else:
+                return int(round(float(passed)))
+        elif passed is None:
+            return passed
+        elif type(passed) is float:
+            return int(round(passed))
+        elif type(passed) is int:
+            return passed
 
     def set_min_thresh(self, min_thresh):
         """Set the minimum threshold for non-adaptive thresholding."""
-        self.thresh_area = min_thresh
+        self.thresh_area = self._passed_to_int(min_thresh)
 
     def set_thresh_area(self, thresh_area):
-        """Set the adaptive threshold area"""
-        self.thresh_area = thresh_area
+        """Set the adaptive threshold area."""
+        self.thresh_area = self._passed_to_int(thresh_area)
 
-    def set_open_kernal(self, open_kernel_x, open_kernel_y):
-        """Set the morphological opening kernel x and y dimensions."""
-        self.open_kernel_x = open_kernel_x
-        self.open_kernel_y = open_kernel_y
+    def set_open_kernal_x(self, open_kernel_x):
+        """Set the morphological opening kernel x dimension."""
+        self.open_kernel_x = self._passed_to_int(open_kernel_x)
+
+    def set_open_kernal_y(self, open_kernel_y):
+        """Set the morphological opening kernel y dimension."""
+        self.open_kernel_y = self._passed_to_int(open_kernel_y)
 
     def abs_thresh(self, img, min_thresh=None, invert=False):
         """Perform an absolute threshold on the passed image.
@@ -71,10 +98,10 @@ class Segment(object):
         else:
             thresh_type = cv2.cv.CV_THRESH_BINARY
         img = cv2.threshold(
-                np.uint8(img.round()), # must convert to uint8
-                min_thresh,            # threshold value
-                255,                   # value to assign to matched pix
-                thresh_type)[1]        # inverted or not, return only the image
+            np.uint8(img.round()),  # must convert to uint8
+            min_thresh,             # threshold value
+            255,                    # value to assign to matched pix
+            thresh_type)[1]         # inverted or not, return only the image
         return img
 
     def thresh(self, img, area=None, invert=False):
@@ -98,12 +125,12 @@ class Segment(object):
         else:
             threshold_type = cv2.cv.CV_THRESH_BINARY
         img = cv2.adaptiveThreshold(
-                    np.uint8(img.round()), # must convert to uint8
-                    255,                   # value to assign to matched pix
-                    adaptive_method,        # Gaussian or mean
-                    threshold_type,         # binary or binary inverted
-                    self.thresh_area,      # area to consider
-                    0)                     # blocksize
+            np.uint8(img.round()),  # must convert to uint8
+            255,                    # value to assign to matched pix
+            adaptive_method,        # Gaussian or mean
+            threshold_type,         # binary or binary inverted
+            self.thresh_area,       # area to consider
+            0)                      # blocksize
         return img
 
     def open(self, img, ok_x=None, ok_y=None):
@@ -136,4 +163,3 @@ class Segment(object):
             seg_img - the segmented image
         """
         return self.open(self.thresh(img))
-

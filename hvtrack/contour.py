@@ -21,49 +21,73 @@ class Contour(object):
         - filter the contours by size and convexity
         - provide an array of contoured objects
     """
-    def __init__(self, contour_area_min=10, contour_area_max=3000,
-                 contour_perim_min=10, contour_perim_max=200,
-                 contour_ratio_min=None, contour_ratio_max=None):
+    def __init__(self, area_min=None, area_max=None,
+                 perim_min=None, perim_max=None,
+                 ratio_min=None, ratio_max=None):
         """
         Remember the multitude of parameters needed to filter contours.
         Takes:
-            contour_area_min - minimum area enclosed by a valid contour
-            contour_area_max - maximum area enclosed by a valid contour
-            contour_perim_min - minimum perimeter of a valid contour
-            contour_perim_max - maximum perimeter of a valid contour
-            contour_ratio_min - minimum area/perimeter ratio
-            contour_ratio_max - maximum area/perimeter ratio
+            area_min - minimum area enclosed by a valid contour
+            area_max - maximum area enclosed by a valid contour
+            perim_min - minimum perimeter of a valid contour
+            perim_max - maximum perimeter of a valid contour
+            ratio_min - minimum area/perimeter ratio
+            ratio_max - maximum area/perimeter ratio
         """
-        self.area_min = contour_area_min
-        self.area_max = contour_area_max
-        self.perim_min = contour_perim_min
-        self.perim_max = contour_perim_max
-        self.ratio_min = contour_ratio_min
-        self.ratio_max = contour_ratio_max
+        # Default values
+        self._area_min_default = 10
+        self._area_max_default = 3000
+        self._perim_min_default = 10
+        self._perim_max_default = 400
+        self._ratio_min_default = None
+        self._ratio_max_default = None
+        # Current values from passed
+        default_if_none = lambda val, de: de if val is None else val
+        self.area_min = default_if_none(area_min, self._area_min_default)
+        self.area_max = default_if_none(area_max, self._area_max_default)
+        self.perim_min = default_if_none(perim_min, self._perim_min_default)
+        self.perim_max = default_if_none(perim_max, self._perim_max_default)
+        self.ratio_min = default_if_none(ratio_min, self._ratio_min_default)
+        self.ratio_max = default_if_none(ratio_max, self._ratio_max_default)
 
-    def set_contour_area_min(self, contour_area_min):
+    @staticmethod
+    def _passed_to_int(passed):
+        """Convert passed (probably string) value for setting a local int."""
+        if type(passed) is str:
+            if passed == "":
+                return None
+            else:
+                return int(round(float(passed)))
+        elif passed is None:
+            return passed
+        elif type(passed) is float:
+            return int(round(passed))
+        elif type(passed) is int:
+            return passed
+
+    def set_contour_area_min(self, a_min):
         """Change the minimum contour area of interest."""
-        self.area_min = contour_area_min
+        self.area_min = self._passed_to_int(a_min, self._area_min_default)
 
-    def set_contour_area_max(self, contour_area_max):
+    def set_contour_area_max(self, a_max):
         """Change the maximum contour area of interest."""
-        self.area_max = contour_area_max
+        self.area_max = self._passed_to_int(a_max, self._area_max_default)
 
-    def set_contour_perim_min(self, contour_perim_min):
+    def set_contour_perim_min(self, p_min):
         """Change the minimum contour perimeter of interest."""
-        self.perim_min = contour_perim_min
+        self.perim_min = self._passed_to_int(p_min, self._perim_min_default)
 
-    def set_contour_perim_max(self, contour_perim_max):
+    def set_contour_perim_max(self, p_max):
         """Change the maximum contour perimeter of interest."""
-        self.perim_max = contour_perim_max
+        self.perim_max = self._passed_to_int(p_max, self._perim_max_default)
 
-    def set_contour_ratio_min(self, contour_ratio_min):
+    def set_contour_ratio_min(self, r_min):
         """Change the minimum contour ratio of interest."""
-        self.ratio_min = contour_ratio_min
+        self.ratio_min = self._passed_to_int(r_min, self._ratio_min_default)
 
-    def set_contour_ratio_max(self, contour_ratio_max):
+    def set_contour_ratio_max(self, r_max):
         """Change the maximum contour ratio of interest."""
-        self.ratio_max = contour_ratio_max
+        self.ratio_max = self._passed_to_int(r_max, self._ratio_max_default)
 
     def print_filter_criteria(self):
         """Print and return as a dict the filter criteria."""

@@ -126,8 +126,6 @@ class PathFrame(ttk.Frame):
     """Configure a path instance."""
     def __init__(self, parent, path):
         self.path = path  # A passed path class instance
-        self.near_v = tk.IntVar(value=self.path.near)
-        self.near_v.trace('w', self.near_call)
         ## GUI setup
         ttk.Frame.__init__(self, parent)
         self.parent = parent
@@ -141,22 +139,23 @@ class PathFrame(ttk.Frame):
         ## Create widgets
         pathLabel = ttk.Label(self, text="Path matching")
         nearLabel = ttk.Label(self, text="Nearness")
-        nearEntry = ttk.Entry(self, width=10,
-                             textvariable=self.near_v)
+        nearEntry = ttk.Entry(self, width=10)
         ## Pack widgets
         pathLabel.grid(row=1, column=1, padx=5, pady=15,
                        columnspan=2, sticky=tk.W)
         nearLabel.grid(row=2, column=1)
         nearEntry.grid(row=2, column=2)
         ## Set default values
-        #nearEntry.delete(0, tk.END)
-        #nearEntry.insert(0, disp(self.path.near))
+        nearEntry.delete(0, tk.END)
+        nearEntry.insert(0, disp(self.path.near))
+        ## Bind widgets
+        nearEntry.bind('<Return>', self.near_call)
+        nearEntry.bind('<FocusOut>', self.near_call)
+        self.nearEntry = nearEntry
 
     def near_call(self, *args):
         """Write the entry value to the path variable."""
-        print args
-        self.path.set_near(self.near_v.get())
-        print self.path.near
+        self.path.set_near(self.nearEntry.get())
 
 
 class Interface(ttk.Frame):
