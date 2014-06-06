@@ -9,6 +9,8 @@ Created by Dave Williams on 2014-04-21
 import Tkinter as tk
 import ttk
 import tkFileDialog
+import numpy as np
+from PIL import Image, ImageTk, ImageEnhance
 import hummertracker
 import os
 # Local imports
@@ -186,19 +188,88 @@ class PathFrame(ttk.Frame):
         path_label = ttk.Label(self, text="Path matching")
         near_label = ttk.Label(self, text="Nearness")
         near_entry = ttk.Entry(self, width=10)
+        length_label = ttk.Label(self, text="Min length")
+        length_entry = ttk.Entry(self, width=10)
         ## Pack widgets
         path_label.grid(row=1, column=1, padx=5, pady=15,
                        columnspan=2, sticky=tk.W)
         near_label.grid(row=2, column=1)
         near_entry.grid(row=2, column=2)
+        length_label.grid(row=2, column=3)
+        length_entry.grid(row=2, column=4)
         ## Set default values
         set_entry(near_entry, self.path.near)
+        set_entry(length_entry, self.path.min_length)
         ## Bind widgets
         self.near_entry = bind_entry(near_entry, self.near_call)
+        self.length_entry = bind_entry(length_entry, self.length_call)
 
     def near_call(self, *args):
         """Write the entry value to the path variable."""
         self.path.set_near(self.near_entry.get())
+
+    def length_call(self, *args):
+        """Write the entry value to the path variable."""
+        self.path.set_min_length(self.length_entry.get())
+
+
+class ImageFrame(ttk.Frame):
+    """Display an image."""
+    def __init__(self, parent, size=None):
+        self.size = (600,480) if size is None else size
+        self.contrast = 10
+        ## GUI setup
+        ttk.Frame.__init__(self, parent)
+        self.parent = parent
+        self.init_ui()
+
+    def init_ui(self):
+        """Put all the UI widgets where they go."""
+        self.style = ttk.Style()
+        self.style.theme_use("default")
+        self.pack(fill=tk.BOTH, expand=1)
+        ## Create widgets
+        image_frame_label = ttk.Label(self, text="Video display")
+        contrast_label = ttk.Label(self, text="Contrast enhancement")
+        contrast_entry = ttk.Entry(self, width=10)
+        photo = ImageTk.PhotoImage(Image.fromarray(np.zeros(self.size).T))
+        image_label = ttk.Label(self)
+        image_label.configure(image=photo)
+        image_label.image = photo  # keep ref to prevent garbage collection
+        ## Pack widgets
+        image_frame_label.grid(row=1, column=1, padx=5, pady=5,
+                               columnspan=3, sticky=tk.W)
+        contrast_label.grid(row=1, column=4, padx=5, pady=5, sticky=tk.E)
+        contrast_entry.grid(row=1, column=5, padx=5, pady=5, 
+                            sticky=tk.E+tk.W)
+        image_label.grid(row=2, column=1, padx=5, pady=5,
+                         columnspan=5, sticky=tk.S)
+        ## Set default values
+        set_entry(contrast_entry, self.contrast)
+        ## Bind widgets
+        self.image_label = image_label
+        self.contrast_entry = bind_entry(contrast_entry, self.contrast_call)
+
+    def contrast_call(self, *args):
+        """Write the entry value to the contrast variable."""
+        self.contrast = self.contrast_entry.get()
+
+    def update_image(self, image):
+        """Update the displayed image with the passed image, scaled.
+
+        The image will be rescaled to size before it is displayed. 
+        Takes:
+            image - an image of the video under examination
+        Gives:
+            None
+        """
+        pil_img = Image.fromarray(image).resize(self.size).convert("L")
+        enhancer = ImageEnhance.Contrast(pil_img)
+        tk_img = ImageTk.PhotoImage(enhancer.enhance(self.contrast))
+        self.image_label.configure(image=tk_img)
+        self.image_label.image = tk_img  # prevent garbage collection
+        self.update()  # allow the frame to complete its updates
+        return
 
 
 class Interface(ttk.Frame):
@@ -223,6 +294,9 @@ class Interface(ttk.Frame):
         self.style.theme_use("default")
         self.pack(fill=tk.BOTH, expand=1)
         # Create subframes to contain each section
+        self.image_f = ImageFrame(self.parent)
+        self.image_f.pack(side=tk.RIGHT, expand=tk.YES,
+                         fill=tk.BOTH, ipadx=10, ipady=10)
         self.video_f = ttk.Frame(self.parent)
         self.video_f.pack(side=tk.TOP, anchor=tk.W, expand=tk.YES,
                           fill=tk.BOTH, ipadx=10, ipady=10)
@@ -237,7 +311,7 @@ class Interface(ttk.Frame):
                          fill=tk.BOTH, ipadx=10, ipady=10)
         #Quit
         quitButton = ttk.Button(self, text="Quit", command=self.quit)
-        quitButton.pack(side=tk.BOTTOM, padx=5, pady=5)
+        quitButton.pack(side=tk.LEFT, padx=5, pady=5)
         #Video
         videoLabel = ttk.Label(self.video_f, text="Video")
         fileLabel = ttk.Label(self.video_f, text="File:")
@@ -258,9 +332,7 @@ class Interface(ttk.Frame):
     def askOpen(self):
         """Ask for a file, then run the tracker on it"""
         fname = tkFileDialog.askopenfilename()
-        trace = hummertracker.vid_to_trace(fname) #throwing PIL error, need to
-        #track down
-        hummertracker.save_trace(os.path.splitext(fname)[0] + '.pkl')
+        self.run_file(fname)
         print fname
     
     def askDir(self):
@@ -268,6 +340,25 @@ class Interface(ttk.Frame):
         dirname = tkFileDialog.askdirectory()
         hummertracker.dir_to_traces(dirname)
         print dirname
+
+    def run_file(self, filename):
+        """Take a passed filename, and get process it."""
+        vid = video.open_video_file(filename)
+        bkg = background.create_background_object(vid)
+        # For testing
+        self.image_f.update_image(bkg.subtract_background(100))
+        print "updated?"
+        # End for testing
+        contour_log = []
+        for img in bkg.subtracted_frames():
+            self.image_f.update_image(img)
+            seg = self.segment.segment(img)
+            con = self.contour.contour_and_filter(seg)
+            contour_log.append(con)
+            paths = self.path.contours_to_paths(contour_log)
+            print [len(p) for p in paths]
+        return paths
+
 
 def main():
     root = tk.Tk()
@@ -277,4 +368,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()  
+    main()
