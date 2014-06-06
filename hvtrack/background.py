@@ -50,7 +50,7 @@ class Background(object):
         """
         return self._first_ten
 
-    def subtract_background(self, frame_ind):
+    def subtract_background(self, frame_ind, absolute=True):
         """Return a non-thresholded background-subtracted version of frame i.
 
         Note that the returned frame will not necessarily be in a format
@@ -59,11 +59,15 @@ class Background(object):
 
         Takes:
             frame_ind - frame number for which to find subtracted version
+            absolute - whether to return the absolute value of the foreground,
+                       a value of False will allow negative values (True)
         Gives:
             frame - the background subtracted frame
         """
         frame = np.subtract(self.video.find_and_read(frame_ind),
                             self.background_image(frame_ind))
+        if absolute:
+            frame = np.abs(frame)
         return frame
 
     def subtracted_frames(self):
