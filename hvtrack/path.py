@@ -43,7 +43,7 @@ class Path(object):
         """
         # Default values
         self.near_default = 100
-        self.min_length_default = 3
+        self.min_length_default = 20
         default_if_none = lambda val, de: de if val is None else val
         self.near = default_if_none(near, self.near_default)
         self.min_length = default_if_none(min_length, self.min_length_default)
@@ -51,15 +51,28 @@ class Path(object):
         self.paths = []
         self.dead_paths = []
 
+    @staticmethod
+    def _passed_to_int(passed):
+        """Convert passed (probably string) value for setting a local int."""
+        if type(passed) is str:
+            if passed == "":
+                return None
+            else:
+                return int(round(float(passed)))
+        elif passed is None:
+            return passed
+        elif type(passed) is float:
+            return int(round(passed))
+        elif type(passed) is int:
+            return passed
+
     def set_near(self, near):
         """Set how close a point has to be to count as near a track end."""
-        if type(near) is str:
-            if near == "":
-                self.near = None
-            else:
-                self.near = int(round(float(near)))
-        elif near is None:
-            self.near = None
+        self.near = self._passed_to_int(near)
+
+    def set_min_length(self, length):
+        """Set the minimum length we'll accept for a path."""
+        self.min_length = self._passed_to_int(length)
 
     def forget_paths(self):
         """Forget current traces to prepare for a new video."""
