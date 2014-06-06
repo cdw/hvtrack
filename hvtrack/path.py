@@ -83,8 +83,8 @@ class Path(object):
     def _center(contour):
         """Return the center of a single contour."""
         cm = cv2.moments(contour)
-        if cm['m00'] == 0 or cm['m00'] == 0:  # occurs with tiny contours
-            return contour.mean(0)
+        if cm['m00'] == 0:  # occurs with tiny contours
+            return contour.mean(0).flatten()
         center = (cm['m10']/cm['m00'], cm['m01']/cm['m00'])
         return center
 
