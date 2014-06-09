@@ -7,6 +7,7 @@ contour.py takes a binary image, calculates and filters its contours.
 """
 
 import cv2
+import numpy as np
 
 
 def create_contour_object():
@@ -98,7 +99,7 @@ class Contour(object):
             "Perimeter max": self.perim_max,
             "Ratio min": self.ratio_min,
             "Ratio max": self.ratio_max}
-        print(criteria)
+        print criteria
         return criteria
 
     @staticmethod
@@ -114,6 +115,22 @@ class Contour(object):
                                        cv2.RETR_CCOMP,
                                        cv2.CHAIN_APPROX_SIMPLE)
         return contours
+
+    @staticmethod
+    def image_from_contours(contours, img_size):
+        """Draw contour lines onto a blank image.
+
+        Takes a list of contours and draws them onto a black image background.
+        Takes:
+            contours - a list of contours
+            img_size - a tuple with the width and height of output image
+        Gives:
+            img - an output image with contours drawn on it
+        """
+        img = np.zeros(img_size)
+        for contour in contours:
+            cv2.drawContours(img, contour, 0, 128, 2)
+        return img
 
     @staticmethod
     def single_contour_center(contour):

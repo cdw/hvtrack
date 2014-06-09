@@ -11,7 +11,6 @@ import ttk
 import tkFileDialog
 import numpy as np
 from PIL import Image, ImageTk, ImageEnhance
-import hummertracker
 import os
 # Local imports
 import video
@@ -351,12 +350,13 @@ class Interface(ttk.Frame):
         # End for testing
         contour_log = []
         for img in bkg.subtracted_frames():
-            self.image_f.update_image(img)
+            #self.image_f.update_image(img)
             seg = self.segment.segment(img)
             con = self.contour.contour_and_filter(seg)
+            self.image_f.update_image(self.contour.image_from_contours(
+                                                        con, img.shape))
             contour_log.append(con)
             paths = self.path.contours_to_paths(contour_log)
-            print [len(p) for p in paths]
         return paths
 
 
