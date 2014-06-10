@@ -184,6 +184,26 @@ class Path(object):
         self.dead_paths = filter(self.path_meets_filters, self.dead_paths)
         return self.dead_paths
 
+    def image_from_paths(self, paths, img_size):
+        """Draw path centers onto a blank image.
+
+        Takes a list of paths and draws them onto a black image background.
+        Takes:
+            paths - a list of paths in the [[time, contour], 
+                    [time+1, contour], ...] format
+            img_size - a tuple with the width and height of output image
+        Gives:
+            img - an output image with contours drawn on it
+        """
+        img = np.zeros(img_size)
+        rndint = lambda flt: int(round(flt))
+        for path in paths:
+            centers = [tuple(map(rndint, self._center(c[1]))) for c in path]   
+            for ind in range(len(centers)-1):
+                cv2.line(img, centers[ind], centers[ind+1], 
+                         (128,128,128), 2, cv2.CV_AA)
+        return img
+        
     def save_path_centers(self, filename, path):
         """Write a path out as an array of frame numbers and center points.
 
